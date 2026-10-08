@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" /><title>Tab Volume Booster</title>
+    <style>
+      /* --- CSS Variables for Theming --- */
+      :root {
+        --bg-color: #ffffff;
+        --text-color: #333333;
+        --panel-bg: #f8f9fa;
+        --border-color: #cfcfcf;
+        --accent-color: #1a73e8;
+        --accent-text: #ffffff;
+        --btn-bg: #ffffff;
+        --btn-hover: #f5f5f5;
+      }
+
+      [data-theme="dark"] {
+        --bg-color: #202124;
+        --text-color: #e8eaed;
+        --panel-bg: #292a2d;
+        --border-color: #3c4043;
+        --btn-bg: #303134;
+        --btn-hover: #3c4043;
+      }
+
+      body { 
+        font-family: system-ui, sans-serif; 
+        width: 280px; 
+        padding: 12px; 
+        margin: 0;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: background-color 0.2s, color 0.2s;
+      }
+
+      /* View Containers */
+      #main-view { display: block; }
+      #settings-view { display: none; }
+
+      .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+      input[type="range"] { width: 100%; accent-color: var(--accent-color); cursor: pointer; }
+
+      .value { font-variant-numeric: tabular-nums; }
+      
+      .footer-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 10px;
+      }
+      .small { color: var(--text-color); opacity: 0.6; font-size: 11px; line-height: 1.3; }
+
+      .btnrow { display:flex; gap:8px; margin-top:10px; }
+      button {
+        flex: 1;
+        padding: 8px 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--btn-bg);
+        color: var(--text-color);
+        cursor: pointer;
+        font-size: 13px;
+        transition: filter 0.2s, border-color 0.2s;
+      }
+      button:hover { filter: brightness(0.95); }
+      button:active { transform: translateY(1px); }
+
+      .btnrow.tight button { padding: 7px 8px; }
+      .btnrow.five { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+      .btnrow.five button { min-width: 0; padding: 8px 2px; font-size: 12px; white-space: nowrap; }
+
+      /* SVG Icon Buttons */
+      .icon-btn {
+        background: transparent;
+        border: none;
+        padding: 6px;
+        cursor: pointer;
+        flex: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-color);
+        transition: background-color 0.2s, color 0.2s;
+      }
+      .icon-btn svg { width: 18px; height: 18px; }
+      .icon-btn:hover { background: var(--panel-bg); color: var(--accent-color); }
+
+      /* Toggle Switch CSS */
+      .toggle-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        background: var(--panel-bg);
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+      }
+      .toggle-box span.toggle-label { font-size: 13px; font-weight: bold; }
+      
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 36px;
+        height: 20px;
+      }
+      .switch input { opacity: 0; width: 0; height: 0; }
+      .slider-toggle {
+        position: absolute; cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: var(--border-color);
+        transition: .2s; border-radius: 20px;
+      }
+      .slider-toggle:before {
+        position: absolute; content: "";
+        height: 14px; width: 14px;
+        left: 3px; bottom: 3px;
+        background-color: var(--btn-bg);
+        transition: .2s; border-radius: 50%;
+      }
+      input:checked + .slider-toggle { background-color: var(--accent-color); }
+      input:checked + .slider-toggle:before { transform: translateX(16px); }
+
+      /* Collapsible Menu */
+      details.modes-menu {
+        margin-top: 10px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 10px;
+      }
+      summary {
+        cursor: pointer; font-weight: bold; font-size: 13px;
+        outline: none; user-select: none;
+      }
+      summary:hover { color: var(--accent-color); }
+      
+      /* Mode Grid */
+      .modes-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 6px; margin-top: 10px;
+      }
+      .mode-btn { padding: 6px; border-radius: 8px; font-size: 11px; }
+      .mode-btn.active {
+        background: var(--accent-color); color: var(--accent-text);
+        border-color: var(--accent-color);
+      }
+      .mode-btn.active:hover { filter: brightness(0.9); }
+
+      /* 5-Band EQ */
+      .eq-container {
+        display: flex; justify-content: space-between;
+        margin-top: 15px; padding: 10px 5px;
+        background: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border-color);
+      }
+      .eq-band { display: flex; flex-direction: column; align-items: center; }
+      .eq-band input[type="range"] {
+        -webkit-appearance: slider-vertical;
+        width: 20px; height: 80px; margin: 0;
+      }
+      .eq-label { font-size: 10px; color: var(--text-color); opacity: 0.8; margin-top: 6px; font-weight: bold; }
+
+      /* Settings Form Elements */
+      .settings-group {
+        margin-top: 15px; background: var(--panel-bg);
+        padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);
+      }
+      
+      .group-header {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+      }
+      .group-header label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 0; }
+
+      /* Pure CSS Tooltip */
+      .help-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 16px; height: 16px; color: var(--accent-color);
+        font-size: 12px; font-weight: bold; cursor: help;
+        position: relative; opacity: 0.8; transition: opacity 0.2s;
+      }
+      .help-icon:hover { opacity: 1; }
+      .help-icon .tooltip-text {
+        visibility: hidden; width: 180px; background-color: var(--accent-color);
+        color: var(--accent-text); text-align: left; border-radius: 6px;
+        padding: 8px; position: absolute; z-index: 10;
+        right: -8px; opacity: 0;
+        transition: opacity 0.2s, bottom 0.2s, top 0.2s;
+        font-size: 11px; font-weight: normal; line-height: 1.4;
+        box-shadow: 0px 4px 8px rgba(0,0,0,0.2); pointer-events: none;
+      }
+      
+      .help-icon .tooltip-top { bottom: 135%; }
+      .help-icon:hover .tooltip-top { visibility: visible; opacity: 1; bottom: 145%; }
+      .help-icon .tooltip-top::after {
+        content: ""; position: absolute; top: 100%; right: 12px;
+        border-width: 5px; border-style: solid;
+        border-color: var(--accent-color) transparent transparent transparent;
+      }
+
+      .help-icon .tooltip-bottom { top: 135%; }
+      .help-icon:hover .tooltip-bottom { visibility: visible; opacity: 1; top: 145%; }
+      .help-icon .tooltip-bottom::after {
+        content: ""; position: absolute; bottom: 100%; right: 12px;
+        border-width: 5px; border-style: solid;
+        border-color: transparent transparent var(--accent-color) transparent;
+      }
+
+      .help-icon .tooltip-left-align { right: auto; left: -8px; }
+      .help-icon .tooltip-top.tooltip-left-align::after { right: auto; left: 12px; }
+      .help-icon .tooltip-bottom.tooltip-left-align::after { right: auto; left: 12px; }
+
+      .settings-group select {
+        width: 100%; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color);
+        background: var(--btn-bg); color: var(--text-color); cursor: pointer;
+      }
+
+      .color-row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+      .color-row:first-child { margin-top: 0; }
+      .color-row label { display: inline-block; margin-bottom: 0; font-size: 12px; font-weight: bold; }
+      .settings-group input[type="color"] {
+        width: 24px; height: 24px; padding: 0; border: 1px solid var(--border-color);
+        border-radius: 4px; background: transparent; cursor: pointer;
+      }
+      .settings-group input[type="color"]::-webkit-color-swatch-wrapper { padding: 1px; }
+      .settings-group input[type="color"]::-webkit-color-swatch { border: 1px solid rgba(0,0,0,0.2); border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+
+    <div id="main-view"><p id="status" role="status" aria-live="polite" style="font-size:12px;min-height:32px;line-height:1.4">Loading...</p>
+      <div class="row">
+        <div><strong>Boost</strong></div>
+        <div class="value" id="label">100%</div>
+      </div>
+
+      <input id="slider" type="range" min="0" max="1000" aria-label="Tab volume percentage" step="10" value="100" />
+
+      <div class="btnrow five">
+        <button id="p100" data-volume="100">100%</button>
+        <button id="p250" data-volume="250">250%</button>
+        <button id="p500" data-volume="500">500%</button>
+        <button id="p750" data-volume="750">750%</button>
+        <button id="p1000" data-volume="1000">1000%</button>
+      </div>
+
+      <div class="btnrow tight five">
+        <button id="minus100" data-step="-100">-100%</button>
+        <button id="minus" data-step="-10">-10%</button>
+        <button id="default">Reset</button>
+        <button id="plus" data-step="10">+10%</button>
+        <button id="plus100" data-step="100">+100%</button>
+      </div>
+
+      <div class="toggle-box">
+        <span class="toggle-label">Audio Leveler</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="help-icon">?
+            <span class="tooltip-text tooltip-top" style="width: 200px;">
+              <b>Audio Leveler:</b> Gently reduces loud sounds and adds 2 dB of gain for quieter audio. Use Smooth Audio below to control sudden peaks independently.
+            </span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="night-mode-toggle" aria-label="Audio Leveler">
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="toggle-box">
+        <span class="toggle-label">Smooth Audio</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="help-icon">?<span class="tooltip-text tooltip-top" style="width:200px">Compresses loud passages so quieter audio can be boosted, and controls sudden peaks. Turn off for plain gain; high boost can then distort.</span></div>
+          <label class="switch"><input type="checkbox" id="smooth-audio-toggle" aria-label="Smooth Audio" checked><span class="slider-toggle"></span></label>
+        </div>
+      </div>
+
+      <details class="modes-menu">
+        <summary>Audio Modes & EQ</summary>
+        <div class="modes-grid">
+          <button class="mode-btn" data-mode="normal">Normal</button>
+          <button class="mode-btn" data-mode="bass">Bass</button>
+          <button class="mode-btn" data-mode="voice">Voice</button>
+          <button class="mode-btn" data-mode="cinema">Cinema</button>
+          <button class="mode-btn" data-mode="custom1">Custom 1</button>
+          <button class="mode-btn" data-mode="custom2">Custom 2</button>
+        </div>
+
+        <div class="eq-container">
+          <div class="eq-band"><input type="range" id="eq-60" aria-label="60 Hz equalizer gain" class="eq-slider" data-band="b60" min="-12" max="12" step="1" value="0" /><span class="eq-label">60</span></div>
+          <div class="eq-band"><input type="range" id="eq-230" aria-label="230 Hz equalizer gain" class="eq-slider" data-band="b230" min="-12" max="12" step="1" value="0" /><span class="eq-label">230</span></div>
+          <div class="eq-band"><input type="range" id="eq-910" aria-label="910 Hz equalizer gain" class="eq-slider" data-band="b910" min="-12" max="12" step="1" value="0" /><span class="eq-label">910</span></div>
+          <div class="eq-band"><input type="range" id="eq-3600" aria-label="3600 Hz equalizer gain" class="eq-slider" data-band="b3600" min="-12" max="12" step="1" value="0" /><span class="eq-label">3.6k</span></div>
+          <div class="eq-band"><input type="range" id="eq-14000" aria-label="14000 Hz equalizer gain" class="eq-slider" data-band="b14000" min="-12" max="12" step="1" value="0" /><span class="eq-label">14k</span></div>
+        </div>
+      </details>
+
+      <div class="footer-row">
+        <div class="small">Saved settings apply automatically when videos play.</div>
+        <button id="open-settings-btn" class="icon-btn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="settings-view">
+      <div class="row">
+        <button id="close-settings-btn" class="icon-btn" title="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+        <div><strong>Settings</strong></div>
+        <div style="width: 30px;"></div> </div>
+
+      <div class="settings-group">
+        <div class="group-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="pan-slider">Audio Balance (L/R)</label>
+            <button id="reset-pan-btn" style="padding: 2px 6px; font-size: 10px; flex: none; width: auto; border-radius: 6px;">Default</button>
+          </div>
+          <div class="help-icon">?
+            <span class="tooltip-text tooltip-bottom">
+              Shift the audio entirely to the left or right speaker.
+            </span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+          <span style="font-size: 11px; font-weight: bold; opacity: 0.7;">L</span>
+          <input id="pan-slider" type="range" min="-1" max="1" step="0.05" value="0" />
+          <span style="font-size: 11px; font-weight: bold; opacity: 0.7;">R</span>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="group-header">
+          <label for="scope-select">Save Settings</label>
+          <div class="help-icon">?
+            <span class="tooltip-text tooltip-top">
+              <b>Per Site:</b> Remembers volume for the current website (e.g. YouTube).<br>
+              <b>Per Tab:</b> Applies only to the currently open tab.<br>
+              <b>Globally:</b> Applies the exact same settings everywhere.
+            </span>
+          </div>
+        </div>
+        <select id="scope-select">
+          <option value="site">Per Site</option>
+          <option value="tab">Per Tab</option>
+          <option value="global">Globally</option>
+        </select>
+      </div>
+
+      <div class="settings-group">
+        <div class="group-header">
+          <label for="theme-select">Theme</label>
+          <div class="help-icon">?
+            <span class="tooltip-text tooltip-top">
+              Change the visual look of the extension popup. Select "Custom Theme" to reveal advanced color pickers.
+            </span>
+          </div>
+        </div>
+        <select id="theme-select">
+          <option value="system">System Default</option>
+          <option value="light">Light Mode</option>
+          <option value="dark">Dark Mode</option>
+          <option value="custom">Custom Theme</option>
+        </select>
+      </div>
+
+      <div class="settings-group">
+        <div class="color-row">
+          <label for="accent-picker">Accent Color</label>
+          <input type="color" id="accent-picker" value="#1a73e8">
+        </div>
+        
+        <div id="custom-colors-group" style="display: none;">
+          <div class="color-row" style="margin-top: 6px;">
+            <label for="bg-picker">Background Color</label>
+            <input type="color" id="bg-picker" value="#2a2a35">
+          </div>
+          
+          <div class="color-row">
+            <label for="text-picker">Text Color</label>
+            <input type="color" id="text-picker" value="#00ffcc">
+          </div>
+        </div>
+      </div>
+      
+      <div class="btnrow" style="margin-top: 15px;">
+        <button id="reset-theme-btn">Reset Theme</button>
+      </div>
+      <div class="btnrow"><button id="stop-audio-btn">Restore Original Tab Audio</button></div>
+    </div>
+
+    <div class="small" style="margin-top:10px">Smooth Audio controls peaks while boosting quieter passages. Higher boost trades dynamics for loudness.</div><div class="btnrow"><button id="reset-all-btn">Clear All Saved Settings</button></div><script src="settings.js"></script><script src="popup.js"></script>
+  </body>
+</html>

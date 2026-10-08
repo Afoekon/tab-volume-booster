@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Volume Booster",
+  "version": "2.0.4",
+  "minimum_chrome_version": "116",
+  "description": "Automatically boost website audio/video players with EQ, balance, and smooth peak protection.",
+  "icons": {
+    "16": "Icon16.png",
+    "32": "Icon32.png",
+    "48": "Icon48.png",
+    "128": "Icon128.png"
+  },
+  "permissions": [
+    "tabs",
+    "storage"
+  ],
+  "action": {
+    "default_title": "Tab Volume Booster",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "Icon16.png",
+      "32": "Icon32.png",
+      "48": "Icon48.png",
+      "128": "Icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "settings.js",
+        "audio-graph.js",
+        "content.js"
+      ],
+      "all_frames": true,
+      "match_about_blank": true,
+      "match_origin_as_fallback": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "peak-guard.js"
+      ],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ]
+}
